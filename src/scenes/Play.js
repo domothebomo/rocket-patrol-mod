@@ -62,7 +62,6 @@ class Play extends Phaser.Scene {
             fixedWidth: 100
         };
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig);
-    
         // GAME OVER flag
         this.gameOver = false;
 
@@ -73,9 +72,15 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
             this.gameOver = true;
         }, null, this);
+
+        // Display for timer
+        this.timeRight = this.add.text(game.config.width - borderUISize - borderPadding*7, borderUISize + borderPadding*2, this.clock.delay / 1000, scoreConfig);
     }
 
     update() {
+        // Update clock timer
+        this.timeRight.text = Math.ceil((this.clock.delay - this.clock.elapsed) / 1000);
+
         // check key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyR)) {
             this.scene.restart()
