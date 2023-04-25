@@ -74,7 +74,7 @@ class Play extends Phaser.Scene {
         }, null, this);
 
         // Display for timer
-        this.timeRight = this.add.text(game.config.width - borderUISize - borderPadding*7, borderUISize + borderPadding*2, this.clock.delay / 1000, scoreConfig);
+        this.timeRight = this.add.text(game.config.width - borderUISize - borderPadding*4, borderUISize + borderPadding*2, this.clock.delay / 1000, scoreConfig);
     }
 
     update() {
