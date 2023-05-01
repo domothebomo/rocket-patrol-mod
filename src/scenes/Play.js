@@ -75,11 +75,24 @@ class Play extends Phaser.Scene {
 
         // Display for timer
         this.timeRight = this.add.text(game.config.width - borderUISize - borderPadding*4, borderUISize + borderPadding*2, this.clock.delay / 1000, scoreConfig);
+        
+        this.comboDisplay = this.add.text(game.config.width/2, borderUISize + borderPadding*2, 'COMBO: x' + this.p1Rocket.combo, scoreConfig);
+        this.activeCombo = false;
+
+        // Combo checker
+        //this.combo = false;
+        //this.comboCount = 0;
     }
 
     update() {
         // Update clock timer
         this.timeRight.text = Math.ceil((this.clock.delay - this.clock.elapsed) / 1000);
+        
+        if (this.activeCombo == true && this.p1Rocket.combo == 0) {
+            this.activeCombo = false;
+            this.comboDisplay.text = 'COMBO: x' + this.p1Rocket.combo;
+        }
+
 
         // check key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyR)) {
@@ -93,9 +106,9 @@ class Play extends Phaser.Scene {
         
         if (!this.gameOver) {
             this.p1Rocket.update();
-            this.ship01.update();
-            this.ship02.update();
-            this.ship03.update();
+            this.ship01.update(this.p1Rocket.combo);
+            this.ship02.update(this.p1Rocket.combo);
+            this.ship03.update(this.p1Rocket.combo);
         }
 
         // check collisions
@@ -135,9 +148,14 @@ class Play extends Phaser.Scene {
             ship.alpha = 1;
             boom.destroy();
         });
+        this.activeCombo = true;
+        this.p1Rocket.combo += 1;
         // score add and repaint
-        this.p1Score += ship.points;
+        this.p1Score += ship.points * this.p1Rocket.combo;
+        this.clock.elapsed -= 1000 * (this.p1Rocket.combo / 2);
+        console.log(this.p1Rocket.combo);
         this.scoreLeft.text = this.p1Score;
+        this.comboDisplay.text = 'COMBO: x' + this.p1Rocket.combo;
         this.sound.play('sfx_explosion');
     }
 }
