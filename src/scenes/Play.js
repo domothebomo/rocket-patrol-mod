@@ -26,6 +26,8 @@ class Play extends Phaser.Scene {
         this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
 
+        //this.bullet = new Bullet(this, 0, 0, 'rocket').setOrigin(0.5, 0);
+
         // Player rocket
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
 
@@ -109,9 +111,29 @@ class Play extends Phaser.Scene {
             this.ship01.update(this.p1Rocket.combo);
             this.ship02.update(this.p1Rocket.combo);
             this.ship03.update(this.p1Rocket.combo);
+            console.log(this.clock.elapsed / 1000 % 5);
+            if (this.clock.elapsed / 1000 % 5 == 0) {
+                this.ship01.fire();
+                this.ship02.fire();
+                this.ship03.fire();
+            }
         }
 
         // check collisions
+        for (let i = 0; i < 10; i++) {
+            if (this.checkCollision(this.p1Rocket.bullets[i], this.ship03)) {
+                this.p1Rocket.bullets[i].reset();
+                this.shipExplode(this.ship03);
+            }
+            if (this.checkCollision(this.p1Rocket.bullets[i], this.ship02)) {
+                this.p1Rocket.bullets[i].reset();
+                this.shipExplode(this.ship02);   
+            }
+            if (this.checkCollision(this.p1Rocket.bullets[i], this.ship01)) {
+                this.p1Rocket.bullets[i].reset();
+                this.shipExplode(this.ship01); 
+            }
+        }
         if (this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship03);

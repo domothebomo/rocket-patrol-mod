@@ -8,6 +8,14 @@ class Rocket extends Phaser.GameObjects.Sprite {
         this.moveSpeed = 2;
         //this.combo = false;
         this.combo = 0;
+        this.bullets = [];
+        for (let i = 0; i < 10; i++) {
+            this.bullets.push(new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0));
+            //this.bullets[i].alpha = 0;
+        }
+        this.bulletCount = 0;
+        //this.bullet = new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0);
+        //this.bullet.alpha = 0;
 
         // add rocket sfx
         this.sfxRocket = scene.sound.add('sfx_rocket');
@@ -15,30 +23,49 @@ class Rocket extends Phaser.GameObjects.Sprite {
 
     update() {
         // left/right movement
-        if (!this.isFiring) {
+        for (let i = 0; i < 10; i++) {
+            this.bullets[i].update();
+            if (this.bullets[i].isFiring && this.bullets[i].y <= borderUISize * 3 + borderPadding) {
+                //this.combo = false;
+                this.combo = 0;
+                //console.log(this.combo);
+                this.bullets[i].reset();
+            }
+        }
+        //this.bullet.update();
+        //if (!this.isFiring) {
             if (keyLEFT.isDown && this.x >= borderUISize + this.width) {
                 this.x -= this.moveSpeed;
             } else if (keyRIGHT.isDown && this.x <= game.config.width - borderUISize - this.width) {
                 this.x += this.moveSpeed;
             }
-        }
+        //}
 
         // Fire button
-        if (Phaser.Input.Keyboard.JustDown(keyF) && !this.isFiring) {
+        if (Phaser.Input.Keyboard.JustDown(keyF)) {
             this.isFiring = true;
             this.sfxRocket.play();
+            this.bullets[this.bulletCount].fire(this);
+            this.bulletCount += 1;
+            if (this.bulletCount == 10) {
+                this.bulletCount = 0;
+            }
         }
+
+        //this.bullet.fire();
+
+        
         // If fired, move up
-        if (this.isFiring && this.y >= borderUISize * 3 + borderPadding) {
-            this.y -= this.moveSpeed;
-        }
+        //if (this.isFiring && this.y >= borderUISize * 3 + borderPadding) {
+        //    this.y -= this.moveSpeed;
+        //}
         // Reset on miss
-        if (this.y <= borderUISize * 3 + borderPadding) {
+        //if (this.y <= borderUISize * 3 + borderPadding) {
             //this.combo = false;
-            this.combo = 0;
-            console.log(this.combo);
-            this.reset();
-        }
+        //    this.combo = 0;
+        //    console.log(this.combo);
+        //    this.reset();
+        //}
     }
 
     reset() {
