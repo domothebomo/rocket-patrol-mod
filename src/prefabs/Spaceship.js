@@ -16,7 +16,7 @@ class spaceship extends Phaser.GameObjects.Sprite {
     }
 
     update(combo) {
-        this.x -= this.moveSpeed * (combo <= 1 ? 1 : combo / 2);
+        this.x -= this.moveSpeed; // *(combo <= 1 ? 1 : combo / 2);
 
         if(this.x <= 0 - this.width) {
             this.reset();

@@ -42,6 +42,7 @@ class Menu extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             // easy mode
             game.settings = {
+                mode: 'easy',
                 spaceshipSpeed: 3,
                 gameTimer: 60000
             }
@@ -51,8 +52,9 @@ class Menu extends Phaser.Scene {
         if (Phaser.Input.Keyboard.JustDown(keyRIGHT)) {
             // hard mode
             game.settings = {
+                mode: 'hard',
                 spaceshipSpeed: 4,
-                gameTimer: 1000
+                gameTimer: 45000
             }
             this.sound.play('sfx_select');
             this.scene.start('playScene');
