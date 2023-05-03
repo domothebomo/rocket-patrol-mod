@@ -6,7 +6,6 @@ class Play extends Phaser.Scene {
 
     preload() {
         this.load.image('rocket', './assets/rocket.png');
-        //this.load.image('spaceship', './assets/spaceship.png');
         this.load.image('starfield', './assets/mars_starfield.png');
         this.load.image('bullet', './assets/bullet.png');
         this.load.image('satellite', './assets/satellite.png');
@@ -19,7 +18,6 @@ class Play extends Phaser.Scene {
     }
 
     create() {
-        //this.add.text(20, 20, "Rocket Patrol Play Scene");
 
         this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0,0);
 
@@ -30,8 +28,6 @@ class Play extends Phaser.Scene {
         this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
-
-        //this.bullet = new Bullet(this, 0, 0, 'rocket').setOrigin(0.5, 0);
 
         // Player rocket
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
@@ -46,12 +42,15 @@ class Play extends Phaser.Scene {
         this.ship02 = new spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'spaceship', 0, 20).setOrigin(0, 0);
         this.ship03 = new spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'spaceship', 0, 10).setOrigin(0, 0);
 
+        // Satellite
         this.satellite = new spaceship(this, game.config.width, borderUISize * 4.5, 'satellite', 0, 0).setOrigin(0,0);
         this.satellite.moveSpeed = game.settings.spaceshipSpeed / 2;
 
+        // Configure list of enemy ships
         this.ships = [this.ship01, this.ship02, this.ship03];
         this.shipFiring = [false, false, false];
 
+        // Reconfigure any right-facing ships
         for (let i = 0; i < 3; i++) {
             if (this.ships[i].direction == 'right') {
                 this.ships[i].x = 0 - (this.ships[i].x - game.config.width);
@@ -131,7 +130,6 @@ class Play extends Phaser.Scene {
 
         // Display Score
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, this.scoreConfig);
-        //this.scoreConfig.fixedWidth = 0;
 
         // Display High Score
         this.highScoreText = this.add.text(borderUISize*4.8 + borderPadding, borderUISize + borderPadding*2, "BEST",this.textConfig);
@@ -170,7 +168,6 @@ class Play extends Phaser.Scene {
         // Speedup
         this.speedup = false;
 
-        //this.scoreConfig.fixedWidth = 0;
     }
 
     update() {
@@ -196,8 +193,10 @@ class Play extends Phaser.Scene {
             this.scene.start("menuScene");
         }
 
+        // Move background
         this.starfield.tilePositionX -= 0.25;
 
+        // Activate speedup after 30 seconds
         if (!this.speedup && this.clock.elapsed > 30000) {
             this.ship01.moveSpeed *= 2;
             this.ship02.moveSpeed *= 2;
@@ -218,10 +217,7 @@ class Play extends Phaser.Scene {
 
             // UPDATE BULLETS
             for (let i = 0; i < 3; i++) {
-                //console.log(this.ships[i]);
-                //console.log(this.ships[i].x);
                 if (Math.abs((this.ships[i].x - this.ships[i].width / 2 ) - this.p1Rocket.x) < 3) {
-                    //console.log('gah');
                     if (!this.shipFiring[i]) {
                         this.ships[i].fire();
                         this.shipFiring[i] = true;
@@ -235,6 +231,7 @@ class Play extends Phaser.Scene {
 
         // check collisions
         for (let i = 0; i < 10; i++) {
+            // Player bullets
             if (this.checkCollision(this.p1Rocket.bullets[i], this.ship03)) {
                 this.p1Rocket.bullets[i].reset();
                 this.shipExplode(this.ship03);
@@ -251,6 +248,7 @@ class Play extends Phaser.Scene {
                 this.p1Rocket.bullets[i].reset();
                 this.shipExplode(this.satellite); 
             }
+            // Enemy bullets
             if (this.checkCollision(this.ship03.bullets[i], this.p1Rocket)) {
                 this.ship03.bullets[i].reset();
                 this.gameEnd();
@@ -309,7 +307,7 @@ class Play extends Phaser.Scene {
         }
 
         if (ship.points == 0) {
-            this.p1Rocket.cooldown = 100;
+            this.p1Rocket.cooldown = 200;
             this.rapidFireDisplay.alpha = 1;
             this.buffTime = this.time.delayedCall(5000, () => {
                 this.p1Rocket.cooldown = 1000;
@@ -317,15 +315,13 @@ class Play extends Phaser.Scene {
             }, null, this);
         }
 
-        this.clock.elapsed -= 1000; //* (this.p1Rocket.combo / 2);
-        //this.scoreLeft.text = this.p1Score;
+        this.clock.elapsed -= 1000;
         this.comboDisplay.text = 'x' + this.p1Rocket.combo;
 
         this.sound.play('sfx_explosion');
     }
 
     gameEnd() {
-        //console.log('game');
         this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', this.scoreConfig).setOrigin(0.5);
         this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or (ESC) for Menu', this.scoreConfig).setOrigin(0.5);
         this.gameOver = true;

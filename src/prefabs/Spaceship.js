@@ -7,14 +7,10 @@ class spaceship extends Phaser.GameObjects.Sprite {
 
         // SPAWN SIDE
         this.direction = Math.floor(Math.random() * 2) == 0 ? 'left' : 'right';
-        //if (this.direction == 'left') {
-        //    this.flipX = true;
-        //}
 
         // BULLETS
         this.bullets = [];
         for (let i = 0; i < 10; i++) {
-            //let bullet = new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0);
             this.bullets.push(new Bullet(scene, 0, 0, 'bullet').setOrigin(0, 0));
             this.bullets[i].flipY = true;
             this.bullets[i].playerBullet = false;
@@ -30,7 +26,7 @@ class spaceship extends Phaser.GameObjects.Sprite {
                 this.reset();
             }
         } else {
-            this.x -= this.moveSpeed; // *(combo <= 1 ? 1 : combo / 2);
+            this.x -= this.moveSpeed;
             if(this.x <= 0 - this.width) {
                 this.reset();
             }
@@ -41,12 +37,8 @@ class spaceship extends Phaser.GameObjects.Sprite {
         }
 
         for (let i = 0; i < 10; i++) {
-            //console.log(this.bullets[i].playerBullet);
             this.bullets[i].update();
             if (this.bullets[i].isFiring && this.bullets[i].y >= game.config.height - borderPadding) {
-                //this.combo = false;
-                //this.combo = 0;
-                //console.log(this.combo);
                 this.bullets[i].reset();
             }
         }
@@ -61,7 +53,6 @@ class spaceship extends Phaser.GameObjects.Sprite {
     }
 
     fire() {
-        //console.log(this.bullets[this.bulletCount].playerBullet);
         if (!this.bullets[this.bulletCount].isFiring) {
             this.bullets[this.bulletCount].fire(this);
         }
@@ -70,11 +61,6 @@ class spaceship extends Phaser.GameObjects.Sprite {
         if (this.bulletCount == 10) {
             this.bulletCount = 0;
         }
-        //}, null, this);
-        //this.bulletCount += 1;
-        //if (this.bulletCount == 10) {
-        //    this.bulletCount = 0;
-        //}
     }
 
 }
