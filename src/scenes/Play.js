@@ -6,11 +6,16 @@ class Play extends Phaser.Scene {
 
     preload() {
         this.load.image('rocket', './assets/rocket.png');
-        this.load.image('spaceship', './assets/spaceship.png');
-        this.load.image('starfield', './assets/starfield.png');
+        //this.load.image('spaceship', './assets/spaceship.png');
+        this.load.image('starfield', './assets/mars_starfield.png');
+        this.load.image('bullet', './assets/bullet.png');
+        this.load.image('satellite', './assets/satellite.png');
     
         // load spritesheet
         this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
+
+        // load atlas
+        this.load.atlas('spaceship', './assets/spaceship.png', './assets/spaceship.json');
     }
 
     create() {
@@ -32,12 +37,27 @@ class Play extends Phaser.Scene {
         this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
 
         // add spaceships (x3)
-        this.ship01 = new spaceship(this, game.config.width + borderUISize * 6, borderUISize * 4, 'spaceship', 0, 30).setOrigin(0, 0);
+
+        // Special Spaceship
+        this.ship01 = new spaceship(this, game.config.width + borderUISize * 6, borderUISize * 3.5, 'spaceship', 0, 60).setOrigin(0, 0);
+        this.ship01.moveSpeed = game.settings.spaceshipSpeed * 2;
+
+        // Normal Spaceships
         this.ship02 = new spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'spaceship', 0, 20).setOrigin(0, 0);
         this.ship03 = new spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'spaceship', 0, 10).setOrigin(0, 0);
 
+        this.satellite = new spaceship(this, game.config.width, borderUISize * 4.5, 'satellite', 0, 0).setOrigin(0,0);
+        this.satellite.moveSpeed = game.settings.spaceshipSpeed / 2;
+
         this.ships = [this.ship01, this.ship02, this.ship03];
         this.shipFiring = [false, false, false];
+
+        for (let i = 0; i < 3; i++) {
+            if (this.ships[i].direction == 'right') {
+                this.ships[i].x = 0 - (this.ships[i].x - game.config.width);
+                this.ships[i].flipX = true;
+            }
+        }
 
         // CONTROLS
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
@@ -47,11 +67,36 @@ class Play extends Phaser.Scene {
         keyESC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
         // ANIMATIONS
+        if (!this.anims.exists('explode')) {
         this.anims.create({
             key: 'explode',
             frames: this.anims.generateFrameNumbers('explosion', {start: 0, end: 9, first: 0}),
             frameRate: 30
         });
+        }
+
+        if (!this.anims.exists('spaceship_fly')) {
+        this.anims.create({
+            key: 'spaceship_fly',
+            frames: this.anims.generateFrameNames('spaceship', {prefix: 'spaceship', start: 1, end: 4}),
+            frameRate: 5,
+            repeat: -1
+        })
+        }
+
+        if (!this.anims.exists('new_spaceship_fly')) {
+        this.anims.create({
+            key: 'new_spaceship_fly',
+            frames: this.anims.generateFrameNames('spaceship', {prefix: 'new_spaceship', start: 1, end: 2}),
+            frameRate: 5,
+            repeat: -1
+        })
+        }
+
+        this.ship01.anims.play('new_spaceship_fly');
+        this.ship02.anims.play('spaceship_fly');
+        this.ship03.anims.play('spaceship_fly');
+
 
         // initialize score
         this.p1Score = 0;
@@ -111,21 +156,37 @@ class Play extends Phaser.Scene {
         this.comboDisplay = this.add.text(game.config.width - borderUISize*3.5 - borderPadding, borderUISize + borderPadding*2, 'x' + this.p1Rocket.combo, this.scoreConfig);
         this.activeCombo = false;
 
+        // FIRE Text
+        this.scoreConfig.fixedWidth = 50;
+        this.fireDisplay = this.add.text(game.config.width / 2 + borderPadding, borderUISize + borderPadding*2, 'FIRE', this.scoreConfig);
+        this.fireDisplay.alpha = 0;
+
+        this.scoreConfig.fixedWidth = 0;
+
+        // RAPID FIRE Text
+        this.rapidFireDisplay = this.add.text(borderPadding, game.config.height - borderPadding * 4, 'RAPID FIRE!', this.scoreConfig);
+        this.rapidFireDisplay.alpha = 0;
+
         // Speedup
         this.speedup = false;
 
-        this.scoreConfig.fixedWidth = 0;
+        //this.scoreConfig.fixedWidth = 0;
     }
 
     update() {
         // Update clock timer
-        this.timeRight.text = Math.ceil((this.clock.delay - this.clock.elapsed) / 1000);
+        if (!this.gameOver) {
+            this.timeRight.text = Math.ceil((this.clock.delay - this.clock.elapsed) / 1000);
+        }
         
         // Update combo counter
         if (this.activeCombo == true && this.p1Rocket.combo == 0) {
             this.activeCombo = false;
             this.comboDisplay.text = 'x' + this.p1Rocket.combo;
         }
+
+        // Update Fire display
+        this.fireDisplay.alpha = 0;
 
         // check key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyR)) {
@@ -135,7 +196,7 @@ class Play extends Phaser.Scene {
             this.scene.start("menuScene");
         }
 
-        this.starfield.tilePositionX -= 4;
+        this.starfield.tilePositionX -= 0.25;
 
         if (!this.speedup && this.clock.elapsed > 30000) {
             this.ship01.moveSpeed *= 2;
@@ -146,15 +207,20 @@ class Play extends Phaser.Scene {
         
         if (!this.gameOver) {
             this.p1Rocket.update();
+            if (this.p1Rocket.bullets[this.p1Rocket.bulletCount == 0 ? 9 : this.p1Rocket.bulletCount - 1].isFiring) {
+                this.fireDisplay.alpha = 1;
+            }
+
             this.ship01.update(this.p1Rocket.combo);
             this.ship02.update(this.p1Rocket.combo);
             this.ship03.update(this.p1Rocket.combo);
+            this.satellite.update(this.p1Rocket.combo);
 
             // UPDATE BULLETS
             for (let i = 0; i < 3; i++) {
                 //console.log(this.ships[i]);
                 //console.log(this.ships[i].x);
-                if (Math.abs(this.ships[i].x - this.p1Rocket.x) < 3) {
+                if (Math.abs((this.ships[i].x - this.ships[i].width / 2 ) - this.p1Rocket.x) < 3) {
                     //console.log('gah');
                     if (!this.shipFiring[i]) {
                         this.ships[i].fire();
@@ -164,9 +230,6 @@ class Play extends Phaser.Scene {
                         this.shipFiring[i] = false;
                     }, null, this);
                 }
-                //this.ship01.fire();
-                //this.ship02.fire();
-                //this.ship03.fire();
             }
         }
 
@@ -184,34 +247,24 @@ class Play extends Phaser.Scene {
                 this.p1Rocket.bullets[i].reset();
                 this.shipExplode(this.ship01); 
             }
+            if (this.checkCollision(this.p1Rocket.bullets[i], this.satellite)) {
+                this.p1Rocket.bullets[i].reset();
+                this.shipExplode(this.satellite); 
+            }
             if (this.checkCollision(this.ship03.bullets[i], this.p1Rocket)) {
                 this.ship03.bullets[i].reset();
                 this.gameEnd();
-                //this.shipExplode(this.ship03);
             }
             if (this.checkCollision(this.ship02.bullets[i], this.p1Rocket)) {
                 this.ship02.bullets[i].reset();
-                this.gameEnd();
-                //this.shipExplode(this.ship02);   
+                this.gameEnd();  
             }
             if (this.checkCollision(this.ship01.bullets[i], this.p1Rocket)) {
                 this.ship01.bullets[i].reset();
                 this.gameEnd();
-                //this.shipExplode(this.ship01); 
             }
         }
-        /**if (this.checkCollision(this.p1Rocket, this.ship03)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship03);
-        }
-        if (this.checkCollision(this.p1Rocket, this.ship02)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship02);   
-        }
-        if (this.checkCollision(this.p1Rocket, this.ship01)) {
-            this.p1Rocket.reset();
-            this.shipExplode(this.ship01); 
-        }*/
+
     }
 
     checkCollision(rocket, ship) {
@@ -253,6 +306,15 @@ class Play extends Phaser.Scene {
                 highscoreExpert = this.p1Score;
                 this.highScore.text = highscoreExpert;
             }
+        }
+
+        if (ship.points == 0) {
+            this.p1Rocket.cooldown = 100;
+            this.rapidFireDisplay.alpha = 1;
+            this.buffTime = this.time.delayedCall(5000, () => {
+                this.p1Rocket.cooldown = 1000;
+                this.rapidFireDisplay.alpha = 0;
+            }, null, this);
         }
 
         this.clock.elapsed -= 1000; //* (this.p1Rocket.combo / 2);

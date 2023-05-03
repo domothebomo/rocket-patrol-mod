@@ -7,11 +7,12 @@ class Rocket extends Phaser.GameObjects.Sprite {
         this.isFiring = false;
         this.moveSpeed = 2;
         this.timeFired = -1000;
+        this.cooldown = 1000;
         //this.combo = false;
         this.combo = 0;
         this.bullets = [];
         for (let i = 0; i < 10; i++) {
-            this.bullets.push(new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0));
+            this.bullets.push(new Bullet(scene, 0, 0, 'bullet').setOrigin(0, 0));
             //this.bullets[i].alpha = 0;
         }
         this.bulletCount = 0;
@@ -46,7 +47,7 @@ class Rocket extends Phaser.GameObjects.Sprite {
         if (Phaser.Input.Keyboard.JustDown(keyF)) {
             //this.cooldown = 
             //console.log(game.getTime());
-            if (game.getTime() - this.timeFired >= 1000) {
+            if (game.getTime() - this.timeFired >= this.cooldown) {
             this.timeFired = game.getTime();
             this.isFiring = true;
             this.sfxRocket.play();

@@ -4,10 +4,18 @@ class spaceship extends Phaser.GameObjects.Sprite {
         scene.add.existing(this);
         this.points = pointValue;
         this.moveSpeed = game.settings.spaceshipSpeed;
+
+        // SPAWN SIDE
+        this.direction = Math.floor(Math.random() * 2) == 0 ? 'left' : 'right';
+        //if (this.direction == 'left') {
+        //    this.flipX = true;
+        //}
+
+        // BULLETS
         this.bullets = [];
         for (let i = 0; i < 10; i++) {
             //let bullet = new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0);
-            this.bullets.push(new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0));
+            this.bullets.push(new Bullet(scene, 0, 0, 'bullet').setOrigin(0, 0));
             this.bullets[i].flipY = true;
             this.bullets[i].playerBullet = false;
 
@@ -15,8 +23,18 @@ class spaceship extends Phaser.GameObjects.Sprite {
         this.bulletCount = 0;
     }
 
-    update(combo) {
-        this.x -= this.moveSpeed; // *(combo <= 1 ? 1 : combo / 2);
+    update() {
+        if (this.direction == 'right') {
+            this.x += this.moveSpeed;
+            if(this.x >= game.config.width + this.width) {
+                this.reset();
+            }
+        } else {
+            this.x -= this.moveSpeed; // *(combo <= 1 ? 1 : combo / 2);
+            if(this.x <= 0 - this.width) {
+                this.reset();
+            }
+        }
 
         if(this.x <= 0 - this.width) {
             this.reset();
@@ -35,7 +53,11 @@ class spaceship extends Phaser.GameObjects.Sprite {
     }
 
     reset() {
-        this.x = game.config.width;
+        if (this.direction == 'right') {
+            this.x = 0;
+        } else {
+            this.x = game.config.width;
+        }
     }
 
     fire() {
