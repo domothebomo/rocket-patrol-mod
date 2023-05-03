@@ -6,9 +6,11 @@ class spaceship extends Phaser.GameObjects.Sprite {
         this.moveSpeed = game.settings.spaceshipSpeed;
         this.bullets = [];
         for (let i = 0; i < 10; i++) {
+            //let bullet = new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0);
             this.bullets.push(new Bullet(scene, 0, 0, 'rocket').setOrigin(0, 0));
             this.bullets[i].flipY = true;
             this.bullets[i].playerBullet = false;
+
         }
         this.bulletCount = 0;
     }
@@ -19,6 +21,17 @@ class spaceship extends Phaser.GameObjects.Sprite {
         if(this.x <= 0 - this.width) {
             this.reset();
         }
+
+        for (let i = 0; i < 10; i++) {
+            //console.log(this.bullets[i].playerBullet);
+            this.bullets[i].update();
+            if (this.bullets[i].isFiring && this.bullets[i].y >= game.config.height - borderPadding) {
+                //this.combo = false;
+                //this.combo = 0;
+                //console.log(this.combo);
+                this.bullets[i].reset();
+            }
+        }
     }
 
     reset() {
@@ -26,12 +39,20 @@ class spaceship extends Phaser.GameObjects.Sprite {
     }
 
     fire() {
-        console.log('bruh');
-        this.bullets[this.bulletCount].fire(this);
+        //console.log(this.bullets[this.bulletCount].playerBullet);
+        if (!this.bullets[this.bulletCount].isFiring) {
+            this.bullets[this.bulletCount].fire(this);
+        }
+        
         this.bulletCount += 1;
         if (this.bulletCount == 10) {
             this.bulletCount = 0;
         }
+        //}, null, this);
+        //this.bulletCount += 1;
+        //if (this.bulletCount == 10) {
+        //    this.bulletCount = 0;
+        //}
     }
 
 }
