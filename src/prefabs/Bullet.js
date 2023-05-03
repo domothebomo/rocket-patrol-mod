@@ -32,8 +32,17 @@ class Bullet extends Phaser.GameObjects.Sprite {
         //}
         // If fired, move up
         //console.log("bruh");
-        if (this.isFiring && this.y >= borderUISize * 3 + borderPadding) {
-            this.y -= this.moveSpeed;
+        if (this.playerBullet == true) {
+            if (this.isFiring && this.y >= borderUISize * 3 + borderPadding) {
+                //console.log('wrong');
+                this.y -= this.moveSpeed;
+            }
+        } else {
+            //console.log('check');
+            if (this.isFiring && this.y <= game.config.height - borderPadding) {
+                //console.log('move');
+                this.y += this.moveSpeed
+            }
         }
         // Reset on miss
         //if (this.isFiring && this.y <= borderUISize * 3 + borderPadding) {
@@ -45,7 +54,8 @@ class Bullet extends Phaser.GameObjects.Sprite {
     }
 
     fire(ship) {
-        if (this.playerBullet = true) {
+        //console.log('fire!');
+        if (this.playerBullet == true) {
             this.x = ship.x - ship.width / 2;
             this.y = ship.y - ship.height;
         } else {
